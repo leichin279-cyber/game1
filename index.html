@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>랜덤 게임 파티 · 반창고쌤</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet">
+<style>
+:root{
+  --coral:#FF6B5E; --coral-d:#E24A3C;
+  --amber:#FFB020; --amber-d:#D98A00;
+  --blue:#4D8BFF; --blue-d:#2E6BE0;
+  --teal:#17B6A0;
+  --ink:#241F35; --ink-2:#5B5470; --ink-3:#8B849E;
+  --paper:#FFF9F2; --card:#FFFFFF; --line:#EDE6DC;
+  --shadow:0 10px 30px rgba(60,40,20,.10);
+  --shadow-sm:0 4px 14px rgba(60,40,20,.08);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  color:var(--ink);
+  background:
+    radial-gradient(1200px 500px at 15% -10%, #FFE9D6 0%, transparent 60%),
+    radial-gradient(1000px 500px at 90% -5%, #DDEBFF 0%, transparent 55%),
+    var(--paper);
+  min-height:100%;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:900px;margin:0 auto;padding:0 clamp(14px,4vw,32px) clamp(40px,6vw,70px)}
+
+/* ---------- Top bar ---------- */
+.topbar{
+  position:sticky;top:0;z-index:50;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:clamp(10px,2.2vw,18px) clamp(2px,1vw,6px) clamp(10px,2vw,16px);
+  backdrop-filter:blur(6px);
+}
+.brand{display:flex;align-items:center;gap:9px;font-weight:800;font-size:clamp(14px,2.4vw,18px);letter-spacing:-.02em}
+.brand .dot{width:11px;height:11px;border-radius:50%;background:var(--coral);box-shadow:0 0 0 4px rgba(255,107,94,.18)}
+.tb-btns{display:flex;gap:8px}
+.icon-btn{
+  display:inline-flex;align-items:center;gap:7px;
+  height:clamp(38px,6vw,44px);padding:0 clamp(12px,2.4vw,16px);border:none;border-radius:14px;cursor:pointer;
+  background:var(--card);color:var(--ink);font-weight:700;font-size:clamp(12px,2vw,14px);
+  box-shadow:var(--shadow-sm);transition:transform .12s, background .15s;
+  font-family:inherit;
+}
+.icon-btn:active{transform:scale(.94)}
+.icon-btn.ghost{background:rgba(255,255,255,.6)}
+.icon-btn svg{width:18px;height:18px}
+.icon-btn[hidden]{display:none}
+
+/* ---------- Screens ---------- */
+.screen{display:none;animation:pop .35s cubic-bezier(.22,1.2,.4,1)}
+.screen.active{display:block}
+@keyframes pop{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
+
+/* ---------- Home ---------- */
+.hero{text-align:center;padding:clamp(16px,4vw,34px) 6px clamp(22px,5vw,40px)}
+.hero .kicker{display:inline-block;font-weight:800;font-size:clamp(11px,1.8vw,13px);letter-spacing:.02em;
+  color:var(--coral-d);background:#FFE7E2;padding:6px 14px;border-radius:999px;margin-bottom:16px}
+.hero h1{font-size:clamp(26px,5.2vw,48px);font-weight:800;letter-spacing:-.03em;line-height:1.15}
+.hero h1 em{font-style:normal;color:var(--coral)}
+.hero p{margin-top:12px;color:var(--ink-2);font-size:clamp(13px,2vw,16px);font-weight:500}
+
+.cards{display:grid;grid-template-columns:1fr;gap:clamp(12px,2.4vw,18px)}
+@media(min-width:600px){.cards{grid-template-columns:repeat(3,1fr)}}
+.game-card{
+  position:relative;overflow:hidden;cursor:pointer;text-align:left;
+  border:none;border-radius:24px;padding:clamp(18px,3.4vw,26px) clamp(16px,3vw,22px) clamp(16px,3vw,22px);color:#fff;
+  box-shadow:var(--shadow);transition:transform .16s cubic-bezier(.22,1.2,.4,1);
+  font-family:inherit;
+}
+.game-card:active{transform:scale(.97)}
+.game-card.g1{background:linear-gradient(150deg,#FF8A72,#FF5B62)}
+.game-card.g2{background:linear-gradient(150deg,#FFC24B,#FF9A2E)}
+.game-card.g3{background:linear-gradient(150deg,#5CA0FF,#3D6FE8)}
+.game-card .num{position:absolute;top:14px;right:18px;font-weight:800;font-size:clamp(34px,5vw,48px);opacity:.28;line-height:1}
+.game-card .emo{font-size:clamp(40px,6vw,56px);line-height:1;filter:drop-shadow(0 4px 6px rgba(0,0,0,.15))}
+.game-card h3{margin-top:14px;font-size:clamp(18px,2.6vw,24px);font-weight:800;letter-spacing:-.02em}
+.game-card p{margin-top:6px;font-size:clamp(12.5px,2vw,14.5px);font-weight:600;opacity:.92;line-height:1.5}
+.game-card .go{margin-top:16px;display:inline-flex;align-items:center;gap:6px;
+  font-weight:800;font-size:14px;background:rgba(255,255,255,.22);padding:8px 14px;border-radius:999px}
+
+.credit{text-align:center;margin-top:34px;color:var(--ink-3);font-size:13px;font-weight:600}
+
+/* ---------- Setup ---------- */
+.panel{background:var(--card);border-radius:26px;box-shadow:var(--shadow);padding:clamp(20px,4vw,32px) clamp(16px,3.6vw,28px)}
+.panel-head{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.panel-head .chip{width:clamp(44px,7vw,56px);height:clamp(44px,7vw,56px);border-radius:16px;display:grid;place-items:center;font-size:clamp(22px,4vw,30px)}
+.chip.g1{background:#FFE7E2}.chip.g2{background:#FFF0D6}.chip.g3{background:#E2ECFF}
+.panel-head h2{font-size:clamp(18px,3vw,24px);font-weight:800;letter-spacing:-.02em}
+.panel-head span{display:block;color:var(--ink-3);font-size:clamp(12px,2vw,13.5px);font-weight:600;margin-top:2px}
+.field-label{font-weight:800;font-size:clamp(13px,2vw,14.5px);color:var(--ink-2);margin:0 0 10px}
+.count-row{display:flex;flex-wrap:wrap;gap:clamp(7px,1.6vw,10px);margin-bottom:24px}
+.count-btn{
+  flex:1;min-width:48px;height:clamp(46px,7vw,54px);border:2px solid var(--line);background:#fff;border-radius:16px;
+  font-weight:800;font-size:clamp(15px,2.2vw,18px);color:var(--ink);cursor:pointer;transition:.14s;font-family:inherit;
+}
+.count-btn:active{transform:scale(.92)}
+.count-btn.sel{border-color:var(--coral);background:var(--coral);color:#fff;box-shadow:0 6px 16px rgba(255,107,94,.35)}
+.names{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(150px,100%),1fr));gap:clamp(8px,1.6vw,12px);margin-bottom:26px}
+.name-item{display:flex;align-items:center;gap:clamp(7px,1.4vw,10px);min-width:0;overflow:hidden;background:var(--paper);border-radius:16px;padding:8px 10px 8px 8px}
+.name-badge{width:clamp(28px,4.2vw,36px);height:clamp(28px,4.2vw,36px);flex:none;border-radius:11px;display:grid;place-items:center;
+  font-weight:800;font-size:clamp(12px,2vw,14px);color:#fff}
+.name-item input{
+  flex:1 1 auto;width:100%;min-width:0;border:none;background:transparent;font-family:inherit;font-size:clamp(13px,2.2vw,16px);font-weight:700;
+  color:var(--ink);padding:8px 2px;
+}
+.name-item input:focus{outline:none}
+.start-btn{
+  width:100%;height:clamp(50px,7vw,60px);border:none;border-radius:18px;cursor:pointer;font-family:inherit;
+  font-weight:800;font-size:clamp(15px,2.6vw,18px);color:#fff;background:linear-gradient(120deg,#FF8A72,#FF5B62);
+  box-shadow:0 10px 24px rgba(255,91,98,.35);transition:transform .12s;
+}
+.start-btn:active{transform:scale(.98)}
+
+/* ---------- Game shared ---------- */
+.game-top{display:flex;align-items:center;justify-content:space-between;margin:6px 0 clamp(14px,3vw,20px);gap:12px}
+.game-name{display:flex;align-items:center;gap:10px;font-size:clamp(17px,3vw,22px);font-weight:800;letter-spacing:-.02em}
+.game-name .e{font-size:clamp(22px,3.6vw,28px)}
+.mini-btn{height:clamp(34px,5.4vw,40px);padding:0 clamp(10px,2vw,15px);border:none;border-radius:12px;background:#fff;box-shadow:var(--shadow-sm);
+  font-family:inherit;font-weight:700;font-size:clamp(11px,1.8vw,13px);color:var(--ink-2);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.mini-btn:active{transform:scale(.95)}
+.hint{text-align:center;color:var(--ink-2);font-weight:600;font-size:clamp(12.5px,2vw,14px);margin-bottom:18px}
+
+/* ---------- Game 1 : RPS ---------- */
+.rps-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:clamp(10px,2vw,16px)}
+@media(min-width:480px){.rps-grid{grid-template-columns:repeat(3,1fr)}}
+@media(min-width:760px){.rps-grid{grid-template-columns:repeat(4,1fr)}}
+.rps-card{
+  position:relative;border-radius:22px;background:#fff;box-shadow:var(--shadow-sm);cursor:pointer;
+  padding:clamp(14px,2.6vw,20px) clamp(8px,2vw,14px) clamp(12px,2vw,18px);text-align:center;border:2px solid transparent;transition:transform .12s,border-color .15s;
+  user-select:none;
+}
+.rps-card:active{transform:scale(.96)}
+.rps-card.win{border-color:var(--teal);background:#E8FBF6}
+.rps-card .rps-emo{font-size:clamp(40px,7vw,60px);line-height:1;display:block;transition:transform .06s}
+.rps-card.spin .rps-emo{animation:jiggle .12s linear infinite}
+@keyframes jiggle{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-4px) rotate(4deg)}}
+.rps-card .rps-name{margin-top:10px;font-weight:800;font-size:clamp(13px,2vw,15.5px);letter-spacing:-.02em}
+.rps-card .rps-sub{font-size:clamp(11px,1.6vw,12.5px);font-weight:700;color:var(--ink-3);margin-top:2px;min-height:15px}
+.rps-card.win .rps-sub{color:var(--teal)}
+.crown{position:absolute;top:-10px;right:-6px;font-size:26px;transform:rotate(18deg);display:none}
+.rps-card.win .crown{display:block}
+.rps-actions{display:flex;gap:12px;margin-top:22px}
+.act-btn{flex:1;height:clamp(46px,6.6vw,56px);border:none;border-radius:16px;cursor:pointer;font-family:inherit;font-weight:800;font-size:clamp(14px,2.2vw,16.5px)}
+.act-primary{background:linear-gradient(120deg,#FF8A72,#FF5B62);color:#fff;box-shadow:0 8px 20px rgba(255,91,98,.3)}
+.act-ghost{background:#fff;color:var(--ink-2);box-shadow:var(--shadow-sm)}
+.act-btn:active{transform:scale(.97)}
+.verdict{text-align:center;margin-top:18px;font-weight:800;font-size:clamp(15px,2.4vw,19px);min-height:26px;letter-spacing:-.02em}
+
+/* ---------- Game 2 : Slips ---------- */
+.turn-banner{display:flex;align-items:center;justify-content:center;gap:10px;
+  background:#FFF0D6;color:var(--amber-d);border-radius:16px;padding:clamp(10px,2vw,14px) 16px;font-weight:800;font-size:clamp(14px,2.2vw,16.5px);margin-bottom:18px}
+.turn-banner .tb-emo{font-size:20px}
+.slips{display:grid;grid-template-columns:repeat(5,1fr);gap:clamp(8px,1.8vw,14px)}
+@media(max-width:420px){.slips{grid-template-columns:repeat(4,1fr);gap:8px}}
+@media(min-width:700px){.slips{grid-template-columns:repeat(10,1fr)}}
+.slip{position:relative;aspect-ratio:3/4;border-radius:16px;cursor:pointer;
+  background:linear-gradient(160deg,#FFD98A,#FFB84D);box-shadow:var(--shadow-sm);
+  display:grid;place-items:center;transition:transform .14s;overflow:hidden;border:none;font-family:inherit}
+.slip:active{transform:scale(.94)}
+.slip .n{font-weight:800;font-size:clamp(15px,2.4vw,20px);color:#8A5A00}
+.slip.opened{cursor:default;background:#F4EFE7;box-shadow:none}
+.slip.safe{background:#E8FBF6}
+.slip.bang{background:linear-gradient(160deg,#FF8A72,#FF4D4D);animation:shake .4s}
+.slip .face{font-size:clamp(20px,3.6vw,30px)}
+.slip .who{position:absolute;bottom:6px;left:0;right:0;font-size:9px;font-weight:800;color:var(--ink-2)}
+.slip.bang .who{color:#fff}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}60%{transform:translateX(7px)}}
+.result-big{text-align:center;margin-top:20px;font-weight:800;font-size:clamp(16px,2.6vw,21px);min-height:28px;letter-spacing:-.02em}
+
+/* ---------- Game 3 : Bomb wires ---------- */
+.wire-box{background:#fff;border-radius:22px;box-shadow:var(--shadow-sm);padding:clamp(10px,2.4vw,18px) clamp(6px,1.6vw,12px) 4px;overflow:hidden;max-width:640px;margin:0 auto}
+#wireSvg{display:block;width:100%;height:auto}
+.wire-svg.shake{animation:shake .45s}
+.wire-hit{cursor:pointer;transition:opacity .12s}
+.wire-hit:hover{opacity:.12}
+.wire-node{cursor:pointer}
+.wire-node.done{cursor:default}
+.wire-node:active .node-circ{transform:scale(.92)}
+.node-circ{transition:transform .1s}
+.wire-caption{text-align:center;color:var(--ink-3);font-weight:700;font-size:12px;margin-top:2px}
+
+
+/* ---------- Confetti / flash ---------- */
+#fx{position:fixed;inset:0;pointer-events:none;z-index:80;overflow:hidden}
+.confetti{position:absolute;width:11px;height:14px;border-radius:2px;will-change:transform,opacity}
+.boom-flash{position:fixed;inset:0;background:#fff;z-index:70;opacity:0;pointer-events:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="brand"><span class="dot"></span>랜덤 게임 파티</div>
+    <div class="tb-btns">
+      <button class="icon-btn ghost" id="soundBtn" onclick="toggleSound()" aria-label="소리 켜기/끄기"><span id="soundEmo">🔊</span></button>
+      <button class="icon-btn" id="homeBtn" hidden onclick="goHome()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>홈
+      </button>
+    </div>
+  </div>
+
+  <!-- HOME -->
+  <section id="home" class="screen active">
+    <div class="hero">
+      <span class="kicker">✨ 오늘의 운명 결정 ✨</span>
+      <h1>세 가지 <em>랜덤 게임</em>으로<br>누가 걸릴까?</h1>
+      <p>인원과 이름을 정하고, 마음껏 도전해 보세요!</p>
+    </div>
+    <div class="cards">
+      <button class="game-card g1" onclick="openSetup(1)">
+        <span class="num">01</span><span class="emo">✂️</span>
+        <h3>가위바위보</h3>
+        <p>사람마다 칸을 터치! 터치할 때마다 결과가 바뀌어요.</p>
+        <span class="go">시작하기 →</span>
+      </button>
+      <button class="game-card g2" onclick="openSetup(2)">
+        <span class="num">02</span><span class="emo">🎟️</span>
+        <h3>쪽지 뽑기</h3>
+        <p>10장 중 꽝은 단 하나! 꽝이 나오면 폭죽이 팡!</p>
+        <span class="go">시작하기 →</span>
+      </button>
+      <button class="game-card g3" onclick="openSetup(3)">
+        <span class="num">03</span><span class="emo">💣</span>
+        <h3>폭탄 줄 뽑기</h3>
+        <p>뒤엉킨 줄 중 하나에 폭탄이! 눈으로는 절대 못 찾아요.</p>
+        <span class="go">시작하기 →</span>
+      </button>
+    </div>
+    <p class="credit">made by 반창고쌤 · @banssam119</p>
+  </section>
+
+  <!-- SETUP -->
+  <section id="setup" class="screen">
+    <div class="panel">
+      <div class="panel-head">
+        <div class="chip" id="setupChip">✂️</div>
+        <div><h2 id="setupTitle">가위바위보</h2><span id="setupDesc">함께할 친구들을 정해요</span></div>
+      </div>
+      <p class="field-label">몇 명이 할까요?</p>
+      <div class="count-row" id="countRow"></div>
+      <p class="field-label">이름을 적어 주세요 <span style="color:var(--ink-3);font-weight:600">(비워도 괜찮아요)</span></p>
+      <div class="names" id="nameList"></div>
+      <button class="start-btn" id="startBtn">게임 시작 🎮</button>
+    </div>
+  </section>
+
+  <!-- GAME 1 -->
+  <section id="game1" class="screen">
+    <div class="game-top">
+      <div class="game-name"><span class="e">✂️</span>가위바위보</div>
+      <button class="mini-btn" onclick="openSetup(1)">👥 인원·이름</button>
+    </div>
+    <p class="hint">각자 자기 칸을 터치하세요. 터치할 때마다 결과가 바뀝니다.</p>
+    <div class="rps-grid" id="rpsGrid"></div>
+    <div class="rps-actions">
+      <button class="act-btn act-ghost" onclick="resetRPS()">다시 ↺</button>
+      <button class="act-btn act-primary" onclick="judgeRPS()">누가 이겼나 판정 🏆</button>
+    </div>
+    <div class="verdict" id="rpsVerdict"></div>
+  </section>
+
+  <!-- GAME 2 -->
+  <section id="game2" class="screen">
+    <div class="game-top">
+      <div class="game-name"><span class="e">🎟️</span>쪽지 뽑기</div>
+      <button class="mini-btn" onclick="openSetup(2)">👥 인원·이름</button>
+    </div>
+    <div class="turn-banner" id="turnBanner"><span class="tb-emo">👉</span><span id="turnText"></span></div>
+    <div class="slips" id="slips"></div>
+    <div class="result-big" id="slipResult"></div>
+    <div class="rps-actions"><button class="act-btn act-ghost" style="flex:1" onclick="setupGame2()">새 게임 ↺</button></div>
+  </section>
+
+  <!-- GAME 3 -->
+  <section id="game3" class="screen">
+    <div class="game-top">
+      <div class="game-name"><span class="e">💣</span>폭탄 줄 뽑기</div>
+      <button class="mini-btn" onclick="openSetup(3)">👥 인원·이름</button>
+    </div>
+    <p class="hint">이름표나 줄을 직접 터치하세요. 불이 타들어가며 폭탄 쪽으로 갑니다!</p>
+    <div class="wire-box">
+      <svg id="wireSvg" class="wire-svg" preserveAspectRatio="xMidYMid meet"></svg>
+    </div>
+    <p class="wire-caption">👆 위쪽 이름표를 눌러보세요</p>
+    <div class="result-big" id="bombResult"></div>
+  </section>
+
+</div>
+
+<div id="fx"></div>
+<div class="boom-flash" id="boomFlash"></div>
+
+<script>
+/* ============ state ============ */
+const RPS = [
+  {e:'✊', n:'바위'},
+  {e:'✌️', n:'가위'},
+  {e:'✋', n:'보'}
+];
+const NAME_COLORS = ['#FF6B5E','#FFB020','#4D8BFF','#17B6A0','#B06BFF','#FF6BB0','#38C172','#FF8A3C'];
+let state = { game:1, count:2, names:[] };
+let soundOn = true;
+
+/* ============ navigation ============ */
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.getElementById('homeBtn').hidden = (id==='home');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function goHome(){ show('home'); }
+
+/* ============ setup ============ */
+const SETUP_META = {
+  1:{emo:'✂️',chip:'g1',title:'가위바위보',desc:'함께할 친구들을 정해요'},
+  2:{emo:'🎟️',chip:'g2',title:'쪽지 뽑기',desc:'순서대로 뽑을 친구들을 정해요'},
+  3:{emo:'💣',chip:'g3',title:'폭탄 줄 뽑기',desc:'줄을 당길 친구들을 정해요'}
+};
+function openSetup(game){
+  state.game = game;
+  if(!state.names.length) state.count = 2;
+  const m = SETUP_META[game];
+  const chip = document.getElementById('setupChip');
+  chip.textContent = m.emo; chip.className = 'chip '+m.chip;
+  document.getElementById('setupTitle').textContent = m.title;
+  document.getElementById('setupDesc').textContent = m.desc;
+  buildCountRow();
+  buildNameList();
+  show('setup');
+}
+function buildCountRow(){
+  const row = document.getElementById('countRow');
+  row.innerHTML = '';
+  for(let i=2;i<=8;i++){
+    const b = document.createElement('button');
+    b.className = 'count-btn'+(i===state.count?' sel':'');
+    b.textContent = i;
+    b.onclick = ()=>{ state.count=i; buildCountRow(); buildNameList(); };
+    row.appendChild(b);
+  }
+}
+function buildNameList(){
+  const list = document.getElementById('nameList');
+  const prev = [...list.querySelectorAll('input')].map(i=>i.value);
+  list.innerHTML = '';
+  for(let i=0;i<state.count;i++){
+    const item = document.createElement('div');
+    item.className = 'name-item';
+    const badge = document.createElement('div');
+    badge.className = 'name-badge';
+    badge.style.background = NAME_COLORS[i%NAME_COLORS.length];
+    badge.textContent = i+1;
+    const input = document.createElement('input');
+    input.type = 'text'; input.maxLength = 8; input.size = 1;
+    input.placeholder = (i+1)+'번 친구';
+    input.value = prev[i]!==undefined ? prev[i] : (state.names[i]||'');
+    item.appendChild(badge); item.appendChild(input);
+    list.appendChild(item);
+  }
+}
+document.getElementById('startBtn').onclick = ()=>{
+  const inputs = document.querySelectorAll('#nameList input');
+  state.names = [...inputs].map((inp,i)=> inp.value.trim() || ((i+1)+'번 친구'));
+  if(state.game===1) startGame1();
+  if(state.game===2) startGame2();
+  if(state.game===3) startGame3();
+};
+
+/* ============ GAME 1 : RPS ============ */
+let rpsResults = [];
+let rpsSpinning = [];
+function startGame1(){
+  rpsResults = new Array(state.count).fill(null);
+  rpsSpinning = new Array(state.count).fill(false);
+  const grid = document.getElementById('rpsGrid');
+  grid.innerHTML = '';
+  state.names.forEach((name,i)=>{
+    const c = document.createElement('div');
+    c.className = 'rps-card';
+    c.id = 'rps-'+i;
+    c.innerHTML = `<span class="crown">👑</span>
+      <span class="rps-emo">❔</span>
+      <div class="rps-name" style="color:${NAME_COLORS[i%8]}">${escapeHtml(name)}</div>
+      <div class="rps-sub">터치!</div>`;
+    c.onclick = ()=> tapRPS(i);
+    grid.appendChild(c);
+  });
+  document.getElementById('rpsVerdict').textContent = '';
+  show('game1');
+}
+function tapRPS(i){
+  if(rpsSpinning[i]) return;
+  rpsSpinning[i] = true;
+  const card = document.getElementById('rps-'+i);
+  card.classList.remove('win');
+  card.classList.add('spin');
+  card.querySelector('.rps-sub').textContent = '두구두구…';
+  document.getElementById('rpsVerdict').textContent = '';
+  document.querySelectorAll('.rps-card').forEach(c=>c.classList.remove('win'));
+  const emo = card.querySelector('.rps-emo');
+  let t = 0;
+  const timer = setInterval(()=>{
+    emo.textContent = RPS[Math.floor(Math.random()*3)].e;
+    tick();
+    if(++t > 10){
+      clearInterval(timer);
+      const r = Math.floor(Math.random()*3);
+      rpsResults[i] = r;
+      emo.textContent = RPS[r].e;
+      card.classList.remove('spin');
+      card.querySelector('.rps-sub').textContent = RPS[r].n;
+      rpsSpinning[i] = false;
+      pop();
+    }
+  }, 70);
+}
+function resetRPS(){
+  rpsResults = rpsResults.map(()=>null);
+  document.querySelectorAll('.rps-card').forEach((c)=>{
+    c.classList.remove('win','spin');
+    c.querySelector('.rps-emo').textContent = '❔';
+    c.querySelector('.rps-sub').textContent = '터치!';
+  });
+  document.getElementById('rpsVerdict').textContent = '';
+}
+function judgeRPS(){
+  const verdict = document.getElementById('rpsVerdict');
+  if(rpsResults.some(r=>r===null)){
+    verdict.style.color = 'var(--ink-2)';
+    verdict.textContent = '아직 안 낸 친구가 있어요! 모두 터치해 주세요.';
+    return;
+  }
+  const kinds = [...new Set(rpsResults)];
+  document.querySelectorAll('.rps-card').forEach(c=>c.classList.remove('win'));
+  if(kinds.length !== 2){
+    verdict.style.color = 'var(--ink-2)';
+    verdict.textContent = kinds.length===1 ? '🤝 모두 똑같아요 — 비겼습니다!' : '🤔 세 가지가 다 나와서 무승부!';
+    return;
+  }
+  const beats = {0:1,1:2,2:0}; // 바위>가위>보>바위
+  const winKind = (beats[kinds[0]]===kinds[1]) ? kinds[0] : kinds[1];
+  const winners = [];
+  rpsResults.forEach((r,i)=>{
+    if(r===winKind){ winners.push(i); document.getElementById('rps-'+i).classList.add('win'); }
+  });
+  verdict.style.color = 'var(--teal)';
+  const names = winners.map(i=>state.names[i]).join(', ');
+  verdict.textContent = `🏆 ${names} 승리! (${RPS[winKind].n})`;
+  fireConfetti(['#17B6A0','#38C172','#FFB020','#4D8BFF']);
+  chord();
+}
+
+/* ============ GAME 2 : Slips ============ */
+let bangIndex = -1, openedCount = 0, turnIdx = 0, g2Over = false;
+function startGame2(){ setupGame2(); show('game2'); }
+function setupGame2(){
+  bangIndex = Math.floor(Math.random()*10);
+  openedCount = 0; turnIdx = 0; g2Over = false;
+  document.getElementById('slipResult').textContent = '';
+  updateTurn();
+  const slips = document.getElementById('slips');
+  slips.innerHTML = '';
+  for(let i=0;i<10;i++){
+    const b = document.createElement('button');
+    b.className = 'slip'; b.id = 'slip-'+i;
+    b.innerHTML = `<span class="n">${i+1}</span>`;
+    b.onclick = ()=> openSlip(i);
+    slips.appendChild(b);
+  }
+}
+function updateTurn(){
+  const banner = document.getElementById('turnBanner');
+  if(g2Over){ banner.style.display='none'; return; }
+  banner.style.display='flex';
+  document.getElementById('turnText').innerHTML =
+    `<b style="color:${NAME_COLORS[turnIdx%8]}">${escapeHtml(state.names[turnIdx])}</b> 차례예요!`;
+}
+function openSlip(i){
+  if(g2Over) return;
+  const el = document.getElementById('slip-'+i);
+  if(el.classList.contains('opened')) return;
+  const drawer = state.names[turnIdx];
+  el.classList.add('opened');
+  openedCount++;
+  if(i===bangIndex){
+    el.classList.add('bang');
+    el.innerHTML = `<span class="face">💥</span><span class="who">${escapeHtml(drawer)}</span>`;
+    g2Over = true;
+    updateTurn();
+    document.getElementById('slipResult').style.color = 'var(--coral-d)';
+    document.getElementById('slipResult').textContent = `💥 ${drawer} — 꽝! 당첨입니다!`;
+    boom(); fireConfetti(['#FF6B5E','#FFB020','#4D8BFF','#17B6A0','#FF6BB0']);
+  }else{
+    el.classList.add('safe');
+    el.innerHTML = `<span class="face">✨</span><span class="who">${escapeHtml(drawer)}</span>`;
+    pop();
+    if(openedCount>=9){ // 마지막 한 장이 꽝
+      document.getElementById('slipResult').style.color='var(--ink-2)';
+      document.getElementById('slipResult').textContent='이제 남은 건 한 장뿐! 그게 꽝이에요 😳';
+    }
+    turnIdx = (turnIdx+1) % state.count;
+    updateTurn();
+  }
+}
+
+/* ============ GAME 3 : Bomb wires ============ */
+const SVGNS = 'http://www.w3.org/2000/svg';
+let bombTop = -1, pulledCount = 0, g3Over = false, wires = [];
+function startGame3(){
+  const n = state.count;
+  bombTop = Math.floor(Math.random()*n);
+  pulledCount = 0; g3Over = false; wires = [];
+  document.getElementById('bombResult').textContent = '';
+
+  const W = Math.max(320, n*74);
+  const H = 320, padX = 34, topY = 46, botY = 262;
+  const svg = document.getElementById('wireSvg');
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.classList.remove('shake');
+  svg.innerHTML = '';
+
+  // top positions in order; bottoms are a shuffled permutation
+  const topX = [], botX = [];
+  for(let i=0;i<n;i++){
+    topX.push(padX + (W-2*padX)*(i+0.5)/n);
+    botX.push(padX + (W-2*padX)*(i+0.5)/n);
+  }
+  const perm = shuffle([...Array(n).keys()]);
+
+  // tangled wire paths: visible color path + invisible fat "hit" path for easy tapping
+  for(let i=0;i<n;i++){
+    const color = NAME_COLORS[i%8];
+    const pts = [{x:topX[i], y:topY}];
+    const steps = 5; // many crossings → untraceable by eye
+    for(let s=1;s<=steps;s++){
+      pts.push({ x: padX + Math.random()*(W-2*padX),
+                 y: topY + (botY-topY)*s/(steps+1) });
+    }
+    pts.push({x:botX[perm[i]], y:botY});
+    const d = smoothPath(pts);
+
+    const base = document.createElementNS(SVGNS,'path');
+    base.setAttribute('d', d);
+    base.setAttribute('fill','none');
+    base.setAttribute('stroke', color);
+    base.setAttribute('stroke-width','5');
+    base.setAttribute('stroke-linecap','round');
+    base.setAttribute('opacity','.92');
+    svg.appendChild(base);
+
+    const char = document.createElementNS(SVGNS,'path');
+    char.setAttribute('d', d);
+    char.setAttribute('fill','none');
+    char.setAttribute('stroke','#3a3340');
+    char.setAttribute('stroke-width','5');
+    char.setAttribute('stroke-linecap','round');
+    svg.appendChild(char);
+    const len = char.getTotalLength();
+    char.style.strokeDasharray = len;
+    char.style.strokeDashoffset = len;
+
+    const wire = { i, path:base, char, len, endX:botX[perm[i]], color, pulled:false };
+    wires.push(wire);
+
+    // fat invisible hit-path sits ON TOP so the drawn line itself is tappable
+    const hit = document.createElementNS(SVGNS,'path');
+    hit.setAttribute('d', d);
+    hit.setAttribute('fill','none');
+    hit.setAttribute('stroke', color);
+    hit.setAttribute('stroke-width','26');
+    hit.setAttribute('stroke-linecap','round');
+    hit.setAttribute('opacity','0');
+    hit.setAttribute('class','wire-hit');
+    hit.style.pointerEvents = 'stroke';
+    hit.addEventListener('click', ()=> pullWire(i));
+    wire.hitEl = hit;
+    // appended after all base/char paths further below, so it stays on top of every line
+  }
+  wires.forEach(w=> svg.appendChild(w.hitEl));
+
+  // bottom endpoint nodes (neutral until revealed)
+  wires.forEach(w=>{
+    const g = document.createElementNS(SVGNS,'g');
+    const circ = document.createElementNS(SVGNS,'circle');
+    circ.setAttribute('cx', w.endX); circ.setAttribute('cy', botY);
+    circ.setAttribute('r','15'); circ.setAttribute('fill','#EDE6DC');
+    const face = document.createElementNS(SVGNS,'text');
+    face.setAttribute('x', w.endX); face.setAttribute('y', botY+6);
+    face.setAttribute('text-anchor','middle'); face.setAttribute('font-size','16');
+    face.textContent = '?';
+    g.appendChild(circ); g.appendChild(face);
+    svg.appendChild(g);
+    w.botCirc = circ; w.botFace = face;
+  });
+
+  // flames (above)
+  wires.forEach(w=>{
+    const flame = document.createElementNS(SVGNS,'text');
+    flame.setAttribute('font-size','26'); flame.setAttribute('text-anchor','middle');
+    flame.setAttribute('opacity','0'); flame.textContent='🔥';
+    svg.appendChild(flame);
+    w.flame = flame;
+  });
+
+  // top nodes + names — this is the primary, large touch target
+  wires.forEach((w,i)=>{
+    const g = document.createElementNS(SVGNS,'g');
+    g.setAttribute('class','wire-node');
+    g.style.cursor = 'pointer';
+    const touchZone = document.createElementNS(SVGNS,'circle');
+    touchZone.setAttribute('cx', topX[i]); touchZone.setAttribute('cy', topY);
+    touchZone.setAttribute('r','28'); touchZone.setAttribute('fill','transparent');
+    const circ = document.createElementNS(SVGNS,'circle');
+    circ.setAttribute('class','node-circ');
+    circ.setAttribute('cx', topX[i]); circ.setAttribute('cy', topY);
+    circ.setAttribute('r','15'); circ.setAttribute('fill', w.color);
+    const label = document.createElementNS(SVGNS,'text');
+    label.setAttribute('x', topX[i]); label.setAttribute('y', topY-22);
+    label.setAttribute('text-anchor','middle'); label.setAttribute('font-size','13');
+    label.setAttribute('font-weight','800'); label.setAttribute('fill', w.color);
+    label.textContent = clip(state.names[i], 5);
+    const num = document.createElementNS(SVGNS,'text');
+    num.setAttribute('x', topX[i]); num.setAttribute('y', topY+5);
+    num.setAttribute('text-anchor','middle'); num.setAttribute('font-size','14');
+    num.setAttribute('font-weight','800'); num.setAttribute('fill','#fff');
+    num.style.pointerEvents = 'none';
+    num.textContent = i+1;
+    g.appendChild(touchZone); g.appendChild(circ); g.appendChild(label); g.appendChild(num);
+    g.addEventListener('click', ()=> pullWire(i));
+    svg.appendChild(g);
+    w.nodeGroup = g; w.nodeCirc = circ;
+  });
+
+  show('game3');
+}
+function pullWire(i){
+  if(g3Over) return;
+  const w = wires[i];
+  if(w.pulled) return;
+  w.pulled = true;
+  w.nodeGroup.classList.add('done');
+  w.nodeGroup.style.pointerEvents = 'none';
+  w.hitEl.style.pointerEvents = 'none';
+  const start = performance.now(), dur = 1200;
+  function frame(now){
+    let t = (now-start)/dur; if(t>1) t=1;
+    w.char.style.strokeDashoffset = w.len*(1-t);
+    const pt = w.path.getPointAtLength(t*w.len);
+    w.flame.setAttribute('x', pt.x);
+    w.flame.setAttribute('y', pt.y+9);
+    w.flame.setAttribute('opacity','1');
+    if(t<1){ if(Math.random()<0.4) tick(); requestAnimationFrame(frame); }
+    else finishWire(i);
+  }
+  requestAnimationFrame(frame);
+}
+function finishWire(i){
+  const w = wires[i];
+  w.flame.setAttribute('opacity','0');
+  pulledCount++;
+  if(i===bombTop){
+    g3Over = true;
+    w.botCirc.setAttribute('fill','#FF4D4D');
+    w.botFace.textContent = '💥';
+    w.botFace.setAttribute('font-size','20');
+    const svg = document.getElementById('wireSvg');
+    svg.classList.add('shake');
+    boomFlash(); boom();
+    fireConfetti(['#FF6B5E','#FFB020','#4D8BFF','#17B6A0','#FF6BB0']);
+    document.getElementById('bombResult').style.color = 'var(--coral-d)';
+    document.getElementById('bombResult').textContent = `💣 ${state.names[i]} — 폭탄 당첨!`;
+    wires.forEach(w2=>{ w2.nodeGroup.style.pointerEvents='none'; w2.hitEl.style.pointerEvents='none'; });
+  }else{
+    w.botCirc.setAttribute('fill','#17B6A0');
+    w.botFace.textContent = '✓';
+    w.botFace.setAttribute('fill','#fff');
+    pop();
+    document.getElementById('bombResult').style.color = 'var(--ink-2)';
+    document.getElementById('bombResult').textContent = `😮‍💨 ${state.names[i]} 안전 통과!`;
+    // 남은 게 하나면 그게 폭탄 → 자동 공개
+    if(pulledCount === state.count-1){
+      const last = wires.find(x=>!x.pulled);
+      if(last) setTimeout(()=> pullWire(last.i), 700);
+    }
+  }
+}
+
+/* ============ helpers ============ */
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function clip(s,n){ return s.length>n ? s.slice(0,n)+'…' : s; }
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function smoothPath(pts){
+  if(pts.length<2) return '';
+  let d = `M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}`;
+  for(let i=0;i<pts.length-1;i++){
+    const p0=pts[i-1]||pts[i], p1=pts[i], p2=pts[i+1], p3=pts[i+2]||p2;
+    const c1x=p1.x+(p2.x-p0.x)/6, c1y=p1.y+(p2.y-p0.y)/6;
+    const c2x=p2.x-(p3.x-p1.x)/6, c2y=p2.y-(p3.y-p1.y)/6;
+    d += ` C ${c1x.toFixed(1)} ${c1y.toFixed(1)}, ${c2x.toFixed(1)} ${c2y.toFixed(1)}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+  }
+  return d;
+}
+
+/* ============ confetti + flash ============ */
+function fireConfetti(colors){
+  const fx = document.getElementById('fx');
+  const N = 70;
+  for(let i=0;i<N;i++){
+    const c = document.createElement('div');
+    c.className = 'confetti';
+    const x = Math.random()*100;
+    c.style.left = x+'vw';
+    c.style.top = '-20px';
+    c.style.background = colors[i%colors.length];
+    c.style.transform = `rotate(${Math.random()*360}deg)`;
+    fx.appendChild(c);
+    const dx = (Math.random()-0.5)*40;
+    const dur = 1100 + Math.random()*900;
+    const rot = 360+Math.random()*720;
+    c.animate([
+      {transform:`translate(0,0) rotate(0deg)`, opacity:1},
+      {transform:`translate(${dx}vw, 108vh) rotate(${rot}deg)`, opacity:.9}
+    ], {duration:dur, easing:'cubic-bezier(.2,.6,.4,1)'});
+    setTimeout(()=>c.remove(), dur);
+  }
+}
+function boomFlash(){
+  const f = document.getElementById('boomFlash');
+  f.animate([{opacity:.85},{opacity:0}], {duration:300, easing:'ease-out'});
+}
+
+/* ============ sound (WebAudio) ============ */
+let actx = null;
+function ac(){ if(!actx){ try{ actx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } return actx; }
+function beep(freq, dur, type='sine', gain=0.06){
+  if(!soundOn) return; const ctx = ac(); if(!ctx) return;
+  const o = ctx.createOscillator(), g = ctx.createGain();
+  o.type = type; o.frequency.value = freq;
+  g.gain.value = gain;
+  o.connect(g); g.connect(ctx.destination);
+  const t = ctx.currentTime;
+  o.start(t);
+  g.gain.setValueAtTime(gain, t);
+  g.gain.exponentialRampToValueAtTime(0.0001, t+dur);
+  o.stop(t+dur);
+}
+function tick(){ beep(520+Math.random()*120, .05, 'square', .03); }
+function pop(){ beep(660,.08,'triangle',.06); setTimeout(()=>beep(880,.1,'triangle',.05),60); }
+function chord(){ [523,659,784].forEach((f,i)=>setTimeout(()=>beep(f,.25,'triangle',.05), i*90)); }
+function boom(){
+  if(!soundOn) return; const ctx = ac(); if(!ctx) return;
+  const o = ctx.createOscillator(), g = ctx.createGain();
+  o.type='sawtooth'; o.frequency.setValueAtTime(160, ctx.currentTime);
+  o.frequency.exponentialRampToValueAtTime(40, ctx.currentTime+0.4);
+  g.gain.setValueAtTime(0.18, ctx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+0.5);
+  o.connect(g); g.connect(ctx.destination);
+  o.start(); o.stop(ctx.currentTime+0.5);
+}
+function toggleSound(){
+  soundOn = !soundOn;
+  document.getElementById('soundEmo').textContent = soundOn ? '🔊' : '🔇';
+  if(soundOn){ ac(); pop(); }
+}
+</script>
+</body>
+</html>
